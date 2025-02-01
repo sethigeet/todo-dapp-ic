@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "yral-test-backend": {
+      "candid": "src/yral-test-backend/yral-test-backend.did",
+      "package": "yral-test-backend",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

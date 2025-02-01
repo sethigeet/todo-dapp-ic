@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/yral-test-backend"
+]
+resolver = "2"
