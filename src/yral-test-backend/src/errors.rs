@@ -5,4 +5,6 @@ use thiserror::Error;
 pub enum AppError {
     #[error("{0} not found")]
     NotFound(String),
+    #[error("{0}")]
+    InvalidInput(String),
 }

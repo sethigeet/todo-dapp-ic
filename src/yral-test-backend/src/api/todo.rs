@@ -37,7 +37,11 @@ fn get_todos(cursor: Option<u64>, limit: u32) -> PaginatedTodos {
 }
 
 #[update]
-fn insert_todo(title: String) -> u64 {
+fn insert_todo(title: String) -> Result<u64, AppError> {
+    if title.is_empty() {
+        return Err(AppError::InvalidInput("Title cannot be empty".to_string()));
+    }
+
     let id = NEXT_ID.with(|counter| {
         let next_id = *counter.borrow();
         *counter.borrow_mut() += 1;
@@ -46,11 +50,15 @@ fn insert_todo(title: String) -> u64 {
 
     let todo = Todo::new(id, title);
     TODOS.with(|todos| todos.borrow_mut().insert(id, todo.clone()));
-    id
+    Ok(id)
 }
 
 #[update]
 fn update_todo_title(id: u64, title: String) -> Result<(), AppError> {
+    if title.is_empty() {
+        return Err(AppError::InvalidInput("Title cannot be empty".to_string()));
+    }
+
     TODOS.with(|todos| {
         let mut todos = todos.borrow_mut();
         if let Some(mut todo) = todos.get(&id) {
