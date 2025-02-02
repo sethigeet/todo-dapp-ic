@@ -14,8 +14,10 @@ thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
+    static NEXT_ID: RefCell<u64> = RefCell::new(0);
+
     // Initialize a `StableBTreeMap` with `MemoryId(0)`.
-    static TODOS: RefCell<StableBTreeMap<String, Todo, Memory>> = RefCell::new(
+    static TODOS: RefCell<StableBTreeMap<u64, Todo, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
         )

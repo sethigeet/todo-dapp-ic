@@ -2,21 +2,21 @@ use ic_cdk::{query, update};
 
 use crate::errors::AppError;
 use crate::models::todo::Todo;
-use crate::TODOS;
+use crate::{NEXT_ID, TODOS};
 
 #[query]
-fn get_todo(id: String) -> Option<Todo> {
+fn get_todo(id: u64) -> Option<Todo> {
     TODOS.with(|todos| todos.borrow().get(&id))
 }
 
 #[derive(candid::CandidType, serde::Serialize)]
 pub struct PaginatedTodos {
     items: Vec<Todo>,
-    next_cursor: Option<String>,
+    next_cursor: Option<u64>,
 }
 
 #[query]
-fn get_todos(cursor: Option<String>, limit: u32) -> PaginatedTodos {
+fn get_todos(cursor: Option<u64>, limit: u32) -> PaginatedTodos {
     TODOS.with(|todos| {
         let todos = todos.borrow();
         let iter = match cursor {
@@ -37,18 +37,25 @@ fn get_todos(cursor: Option<String>, limit: u32) -> PaginatedTodos {
 }
 
 #[update]
-fn insert_todo(title: String) -> String {
-    let todo = Todo::new(title);
-    TODOS.with(|todos| todos.borrow_mut().insert(todo.id.clone(), todo.clone()));
-    todo.id
+fn insert_todo(title: String) -> u64 {
+    let id = NEXT_ID.with(|counter| {
+        let next_id = *counter.borrow();
+        *counter.borrow_mut() += 1;
+        next_id
+    });
+
+    let todo = Todo::new(id, title);
+    TODOS.with(|todos| todos.borrow_mut().insert(id, todo.clone()));
+    id
 }
 
 #[update]
-fn update_todo_title(id: String, title: String) -> Result<(), AppError> {
+fn update_todo_title(id: u64, title: String) -> Result<(), AppError> {
     TODOS.with(|todos| {
-        let todos = todos.borrow_mut();
+        let mut todos = todos.borrow_mut();
         if let Some(mut todo) = todos.get(&id) {
             todo.title = title;
+            todos.insert(id, todo);
             Ok(())
         } else {
             Err(AppError::NotFound("Todo".to_string()))
@@ -57,7 +64,7 @@ fn update_todo_title(id: String, title: String) -> Result<(), AppError> {
 }
 
 #[update]
-fn delete_todo(id: String) -> Result<(), AppError> {
+fn delete_todo(id: u64) -> Result<(), AppError> {
     TODOS.with(|todos| {
         let mut todos = todos.borrow_mut();
         if todos.contains_key(&id) {

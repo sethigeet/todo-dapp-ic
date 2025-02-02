@@ -1,11 +1,10 @@
 use candid::CandidType;
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone, CandidType)]
 pub struct Todo {
-    pub id: String,
+    pub id: u64,
     pub title: String,
     pub completed: bool,
 }
@@ -23,9 +22,9 @@ impl Storable for Todo {
 }
 
 impl Todo {
-    pub fn new(title: String) -> Self {
+    pub fn new(id: u64, title: String) -> Self {
         Self {
-            id: Uuid::new_v4().to_string(),
+            id,
             title,
             completed: false,
         }
